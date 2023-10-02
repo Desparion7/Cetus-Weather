@@ -1,10 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { TDataItem } from '@/App';
 
 interface FavoritesContextType {
-	favorites: TDataItem[];
-	toggleFavorite: (city: TDataItem) => void;
+	favorites: string[];
+	toggleFavorite: (id: string) => void;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(
@@ -12,16 +11,16 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 );
 
 const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-	const [favorites, setFavorites] = useState<TDataItem[]>([]);
+	const [favorites, setFavorites] = useState<string[]>([]);
 
-	const toggleFavorite = (city: TDataItem) => {
-		if (favorites.includes(city)) {
+	const toggleFavorite = (cityId: string) => {
+		if (favorites.includes(cityId)) {
 			const newFavorites = favorites.filter(
-				(favorite) => favorite !== city
+				(favorite) => favorite !== cityId
 			);
 			setFavorites(newFavorites);
 		} else {
-			setFavorites([...favorites, city]);
+			setFavorites([...favorites, cityId]);
 		}
 	};
 

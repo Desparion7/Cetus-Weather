@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { ChangeEventHandler, useEffect, useMemo, useState } from 'react';
 import { Input } from '@/components/ui/input.tsx';
 import { Header } from '@/components/ui/Header.tsx';
 import { CityListCard } from '@/components/CityListCard.tsx';
@@ -17,30 +17,38 @@ export type TDataItem = {
 };
 
 function App() {
-	const [citiesData, setCitiesData] = useState<TDataItem[]>([]);
+	const { favorites } = useFavorites();
+
+	const [search, setSearch] = useState('');
 	const [temperaturUnit, setTemperaturUnit] =
 		useState<TemperatureUnit>('CELSIUS');
 
-	const { favorites } = useFavorites();
-
-	const { isLoading, isError, data } = useQuery({
+	const { isLoading, isSuccess, isError, data } = useQuery({
 		queryKey: ['citiesWeather'],
 		queryFn: fetchCitiesData,
 	});
 
-	useEffect(() => {
-		setCitiesData(data);
-	}, [data]);
-
-	const handleFilter = (search: string) => {
-		const lowercaseSearch = search.toLowerCase();
-		const filteredData = data.filter(
-			(item: TDataItem) =>
-				item.city.toLowerCase().includes(lowercaseSearch) ||
-				item.city.toLowerCase().startsWith(lowercaseSearch)
-		);
-		setCitiesData(filteredData);
+	const handleFilter: ChangeEventHandler<HTMLInputElement> = (event) => {
+		setSearch(event.target.value.trim());
 	};
+
+	const filteredData = useMemo(() => {
+		if (!isSuccess || !data || !data.length) {
+			return [];
+		}
+
+		return data.filter((item: TDataItem) =>
+			item.city.toLowerCase().includes(search.toLowerCase())
+		);
+	}, [search, data, isSuccess]);
+
+	const favoriteCities = useMemo(
+		() =>
+			isSuccess
+				? data.filter((city: TDataItem) => favorites.includes(city.id))
+				: [],
+		[data, favorites, isSuccess]
+	);
 
 	return (
 		<>
@@ -53,7 +61,7 @@ function App() {
 				<div className={'flex justify-between gap-4'}>
 					<Input
 						onChange={(e) => {
-							handleFilter(e.target.value);
+							handleFilter(e);
 						}}
 						className={'flex-grow'}
 						placeholder={'Search city...'}
@@ -68,7 +76,7 @@ function App() {
 
 				<CityListCard
 					title={'Weather in cities'}
-					citiesData={citiesData}
+					citiesData={data}
 					temperaturUnit={temperaturUnit}
 					isLoading={isLoading}
 					isError={isError}
@@ -76,7 +84,7 @@ function App() {
 				{favorites.length > 0 && (
 					<CityListCard
 						title={'Favorites'}
-						citiesData={favorites}
+						citiesData={favoriteCities}
 						temperaturUnit={temperaturUnit}
 					/>
 				)}

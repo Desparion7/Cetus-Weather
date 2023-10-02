@@ -15,10 +15,10 @@ export const CityListItem = ({
 }: CityListItemProps) => {
 	const { favorites, toggleFavorite } = useFavorites();
 
-	const isFavorite = favorites.find((item) => item.id === cityData.id);
+	const isFavorite = favorites.find((item) => item === cityData.id);
 
 	const handleClickFavorite = () => {
-		toggleFavorite(cityData);
+		toggleFavorite(cityData.id);
 	};
 
 	return (
